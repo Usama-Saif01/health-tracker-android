@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Personal Health Tracker",
   description: "Securely log and track your Accu-Chek blood sugar readings.",
+  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: '/favicon-light.png', media: '(prefers-color-scheme: light)' },
