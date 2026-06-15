@@ -15,7 +15,8 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg('');
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const loginEmail = email.includes('@') ? email : `${email}@demo.com`;
+    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
     if (error) setErrorMsg(error.message);
     else router.push('/');
     setIsLoading(false);
@@ -24,7 +25,8 @@ export default function LoginPage() {
   const handleSignUp = async () => {
     setIsLoading(true);
     setErrorMsg('');
-    const { error } = await supabase.auth.signUp({ email, password });
+    const loginEmail = email.includes('@') ? email : `${email}@demo.com`;
+    const { error } = await supabase.auth.signUp({ email: loginEmail, password });
     if (error) setErrorMsg(error.message);
     else setErrorMsg('Check your email for a confirmation link.');
     setIsLoading(false);
@@ -40,12 +42,12 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4 flex-1 flex flex-col w-full justify-center text-gray-800 dark:text-slate-200">
           <div>
-            <label className="text-sm font-medium block mb-1 text-gray-600 dark:text-slate-400" htmlFor="email">Email</label>
+            <label className="text-sm font-medium block mb-1 text-gray-600 dark:text-slate-400" htmlFor="email">Username or Email</label>
             <input
-              type="email"
+              type="text"
               className="w-full border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
               value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com" required
+              placeholder="user1 or you@example.com" required
             />
           </div>
           <div className="mb-4">
