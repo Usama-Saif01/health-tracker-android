@@ -101,6 +101,7 @@ export default function Dashboard() {
       setMsg('Glucose Reading logged successfully!');
       e.currentTarget.reset();
       await refreshReport();
+      router.refresh(); // Invalidate Next.js client router cache
     } catch (err: any) {
       setMsg(err.message);
     }
@@ -118,6 +119,7 @@ export default function Dashboard() {
       setMsg('Blood Pressure logged successfully!');
       e.currentTarget.reset();
       await refreshReport();
+      router.refresh(); // Invalidate Next.js client router cache
     } catch (err: any) {
       setMsg(err.message);
     }
