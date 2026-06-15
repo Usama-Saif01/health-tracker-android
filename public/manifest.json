@@ -19,5 +19,22 @@
       "sizes": "512x512",
       "type": "image/png"
     }
+  ],
+  "id": "/?source=pwa",
+  "categories": ["health", "medical", "fitness", "lifestyle"],
+  "prefer_related_applications": false,
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "form_factor": "wide"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "form_factor": "narrow"
+    }
   ]
 }
