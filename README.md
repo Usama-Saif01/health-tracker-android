@@ -18,6 +18,15 @@ A professional, extremely secure, and aesthetically pleasing dual-purpose health
 - 🔐 **Enterprise-Grade Security**: Powered by Supabase Auth with strict Row Level Security (RLS). Your data is cryptographically tied to your account and completely inaccessible to anyone else.
 - 🎨 **Beautiful UI/UX**: Designed using Tailwind CSS with glassmorphism effects, smooth animations, and a polished dark mode interface.
 - ⚡ **Real-time Engine**: Built on Next.js 14 App Router and Server Actions for a lightning-fast, cache-busting, real-time experience.
+- 📶 **Offline Support & PWA**: Full Progressive Web App functionality with offline data syncing.
+- 📱 **Native Android App**: Installable signed APK available for a native mobile experience.
+
+---
+
+## 📱 Download Android App
+
+You can download the pre-compiled, signed Android application directly from the repository:
+- **[Download APK (app-release-signed.apk)](https://github.com/Usama-Saif01/health-tracker-android/raw/main/public/app-release-signed.apk)**
 
 ---
 
@@ -39,8 +48,8 @@ A professional, extremely secure, and aesthetically pleasing dual-purpose health
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/personal-health-tracker.git
-cd personal-health-tracker
+git clone https://github.com/Usama-Saif01/health-tracker-android.git
+cd health-tracker-android
 ```
 
 ### 2. Install Dependencies
