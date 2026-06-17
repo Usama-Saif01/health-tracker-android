@@ -1,0 +1,79 @@
+{
+  "packageId": "cloud.usamasaifullah.apps.health.twa",
+  "host": "health.apps.usamasaifullah.cloud",
+  "name": "(Health Track)",
+  "launcherName": "Health Track",
+  "display": "standalone",
+  "themeColor": "#0F172A",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#0F172A",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://health.apps.usamasaifullah.cloud/icon-512x512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "/home/saif/Documents/health-tracker-android/health-track-android-app/android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1",
+  "appVersionCode": 1,
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "shortName": "Dashboard",
+      "url": "https://health.apps.usamasaifullah.cloud/",
+      "chosenIconUrl": "https://health.apps.usamasaifullah.cloud/icon-192x192.png"
+    }
+  ],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://health.apps.usamasaifullah.cloud/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://health.apps.usamasaifullah.cloud/",
+  "minSdkVersion": 21,
+  "shareTarget": {
+    "action": "https://health.apps.usamasaifullah.cloud/",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "orientation": "portrait",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [
+    {
+      "protocol": "web+health",
+      "url": "https://health.apps.usamasaifullah.cloud/?url=%s"
+    }
+  ],
+  "fileHandlers": [
+    {
+      "actionUrl": "https://health.apps.usamasaifullah.cloud/",
+      "mimeTypes": [
+        "text/csv"
+      ]
+    }
+  ],
+  "launchHandlerClientMode": "navigate-existing",
+  "displayOverride": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui",
+    "tabbed"
+  ],
+  "appVersion": "1"
+}
