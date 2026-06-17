@@ -90,9 +90,24 @@
       "name": "Health Overview",
       "description": "Overview of your health metrics",
       "tag": "health-overview",
+      "template": "/widgets/overview-template.json",
       "ms_ac_template": "/widgets/overview-template.json",
       "data": "/api/widgets/overview",
-      "type": "application/json"
+      "type": "application/json",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ],
+      "screenshots": [
+        {
+          "src": "/screenshot-desktop.jpg",
+          "sizes": "1024x1024",
+          "type": "image/jpeg"
+        }
+      ]
     }
   ],
   "edge_side_panel": {
