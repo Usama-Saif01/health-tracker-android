@@ -11,9 +11,9 @@ const ratelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(10, '60 s'),
 });
 
-export async function middleware(request: NextRequest) {
-  // Extract the incoming IP address (Vercel provides this)
-  const ip = request.ip ?? '127.0.0.1';
+export async function proxy(request: NextRequest) {
+  // Extract the incoming IP address from headers (Vercel provides this)
+  const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
 
   // Check the rate limit
   const { success, limit, remaining, reset } = await ratelimit.limit(ip);
