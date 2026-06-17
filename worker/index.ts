@@ -46,3 +46,17 @@ sw.addEventListener("notificationclick", (event) => {
     })
   );
 });
+
+// Listen to widget click events
+sw.addEventListener("widgetclick", (event) => {
+  if (event.action === "openApp") {
+    event.waitUntil(
+      sw.clients.matchAll({ type: "window" }).then((clientList) => {
+        for (const client of clientList) {
+          if (client.url === "/" && "focus" in client) return client.focus();
+        }
+        if (sw.clients.openWindow) return sw.clients.openWindow("/");
+      })
+    );
+  }
+});

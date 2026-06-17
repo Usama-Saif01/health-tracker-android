@@ -90,8 +90,8 @@
       "name": "Health Overview",
       "description": "Overview of your health metrics",
       "tag": "health-overview",
-      "ms_ac_template": "/",
-      "data": "/",
+      "ms_ac_template": "/widgets/overview-template.json",
+      "data": "/api/widgets/overview",
       "type": "application/json"
     }
   ],
