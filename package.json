@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_OPTIONS=--dns-result-order=ipv4first next dev",
+    "dev": "NODE_OPTIONS=--dns-result-order=ipv4first next dev --webpack",
     "build": "next build --webpack",
     "postbuild": "node scripts/inline-worker.js",
     "start": "NODE_OPTIONS=--dns-result-order=ipv4first next start",
@@ -16,6 +16,8 @@
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
     "@vercel/analytics": "^2.0.1",
+    "dexie": "^4.4.4",
+    "dexie-react-hooks": "^4.4.0",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "lucide-react": "^1.18.0",
@@ -29,9 +31,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/ws": "^8.18.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "ws": "^8.21.0"
   }
 }

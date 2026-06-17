@@ -2,10 +2,13 @@
 
 // Main Dashboard Component for Personal Health Tracker
 import { useState, useEffect } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import { useRouter } from 'next/navigation';
 import { logGlucoseReading, getCombinationReport, logBloodPressureReading, getBloodPressureReport } from './actions';
 import { getProfile } from './profile/actions';
 import { supabase } from '../lib/supabaseClient';
+import { db } from '../lib/db';
+import { useOfflineSync } from '../hooks/useOfflineSync';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useTheme } from 'next-themes';
@@ -62,11 +65,68 @@ export default function Dashboard() {
     }
   }, [token, filterMeal, filterTag, bpFilterTag, fromDate, toDate]); 
 
+  const { isSyncing } = useOfflineSync(token);
+  
+  // Real-time listener for pending offline records
+  const pendingRecords = useLiveQuery(() => db.metrics.where('synced').equals(0).toArray(), []) || [];
+
+  const offlineGlucose = pendingRecords
+    .filter(r => r.metric_type === 'glucose')
+    .map(r => ({
+      id: `offline-${r.id}`,
+      recorded_at: r.recorded_at,
+      glucose_level: Number(r.payload.glucose_level),
+      meal_reference: r.payload.meal_reference || null,
+      context_tag: r.payload.context_tag || null,
+      notes: r.payload.notes || null,
+      isOffline: true
+    }))
+    .filter(r => {
+      if (filterMeal && r.meal_reference !== filterMeal) return false;
+      if (filterTag && r.context_tag !== filterTag) return false;
+      if (fromDate && new Date(r.recorded_at) < new Date(fromDate)) return false;
+      if (toDate && new Date(r.recorded_at) > new Date(toDate + 'T23:59:59')) return false;
+      return true;
+    })
+    .sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime());
+
+  const offlineBp = pendingRecords
+    .filter(r => r.metric_type === 'blood_pressure')
+    .map(r => ({
+      id: `offline-${r.id}`,
+      recorded_at: r.recorded_at,
+      systolic: Number(r.payload.systolic),
+      diastolic: Number(r.payload.diastolic),
+      pulse: Number(r.payload.pulse),
+      context_tag: r.payload.context_tag || null,
+      notes: r.payload.notes || null,
+      isOffline: true
+    }))
+    .filter(r => {
+      if (bpFilterTag && r.context_tag !== bpFilterTag) return false;
+      if (fromDate && new Date(r.recorded_at) < new Date(fromDate)) return false;
+      if (toDate && new Date(r.recorded_at) > new Date(toDate + 'T23:59:59')) return false;
+      return true;
+    })
+    .sort((a, b) => new Date(b.recorded_at).getTime() - new Date(a.recorded_at).getTime());
+
+  const displayReadings = [...offlineGlucose, ...readings.filter(r => !r.isOffline)];
+  const displayBpReadings = [...offlineBp, ...bpReadings.filter(r => !r.isOffline)];
+
   useEffect(() => {
     if (token) {
       loadProfile(token);
     }
   }, [token]);
+
+  useEffect(() => {
+    const handleSyncComplete = () => {
+      refreshReport();
+      router.refresh();
+    };
+    window.addEventListener('offline-sync-complete', handleSyncComplete);
+    return () => window.removeEventListener('offline-sync-complete', handleSyncComplete);
+  }, [token, filterMeal, filterTag, bpFilterTag, fromDate, toDate]);
 
   async function loadProfile(currentToken: string) {
     try {
@@ -79,14 +139,18 @@ export default function Dashboard() {
 
   async function refreshReport(currentToken = token) {
     if (!currentToken) return;
-    try {
-      const gData = await getCombinationReport(currentToken, filterMeal || undefined, filterTag || undefined, fromDate || undefined, toDate || undefined, Date.now());
-      setReadings(gData);
 
-      const bData = await getBloodPressureReport(currentToken, bpFilterTag || undefined, fromDate || undefined, toDate || undefined, Date.now());
-      setBpReadings(bData);
-    } catch (err: any) {
-      setMsg(err.message);
+    if (navigator.onLine) {
+      try {
+        const gData = await getCombinationReport(currentToken, filterMeal || undefined, filterTag || undefined, fromDate || undefined, toDate || undefined, Date.now());
+        const bData = await getBloodPressureReport(currentToken, bpFilterTag || undefined, fromDate || undefined, toDate || undefined, Date.now());
+        setReadings(gData);
+        setBpReadings(bData);
+      } catch (err: any) {
+        if (err.message !== 'Failed to fetch') {
+          setMsg(err.message);
+        }
+      }
     }
   }
 
@@ -97,8 +161,26 @@ export default function Dashboard() {
     setMsg('');
     try {
       const formData = new FormData(e.currentTarget);
-      await logGlucoseReading(formData, token);
-      setMsg('Glucose Reading logged successfully!');
+      
+      // Build JSON payload
+      const payload: Record<string, any> = {};
+      formData.forEach((value, key) => { payload[key] = value; });
+
+      if (navigator.onLine) {
+        try {
+          await logGlucoseReading(formData, token);
+          setMsg('Glucose Reading logged successfully!');
+          await db.metrics.add({ metric_type: 'glucose', payload, synced: 1, recorded_at: new Date().toISOString() });
+        } catch (serverErr) {
+          console.warn("Server save failed, queuing offline:", serverErr);
+          await db.metrics.add({ metric_type: 'glucose', payload, synced: 0, recorded_at: new Date().toISOString() });
+          setMsg('Network error. Reading queued offline.');
+        }
+      } else {
+        await db.metrics.add({ metric_type: 'glucose', payload, synced: 0, recorded_at: new Date().toISOString() });
+        setMsg('Device offline. Reading safely queued offline.');
+      }
+
       e.currentTarget.reset();
       await refreshReport();
       router.refresh(); // Invalidate Next.js client router cache
@@ -115,8 +197,25 @@ export default function Dashboard() {
     setMsg('');
     try {
       const formData = new FormData(e.currentTarget);
-      await logBloodPressureReading(formData, token);
-      setMsg('Blood Pressure logged successfully!');
+      
+      const payload: Record<string, any> = {};
+      formData.forEach((value, key) => { payload[key] = value; });
+
+      if (navigator.onLine) {
+        try {
+          await logBloodPressureReading(formData, token);
+          setMsg('Blood Pressure logged successfully!');
+          await db.metrics.add({ metric_type: 'blood_pressure', payload, synced: 1, recorded_at: new Date().toISOString() });
+        } catch (serverErr) {
+          console.warn("Server save failed, queuing offline:", serverErr);
+          await db.metrics.add({ metric_type: 'blood_pressure', payload, synced: 0, recorded_at: new Date().toISOString() });
+          setMsg('Network error. Reading queued offline.');
+        }
+      } else {
+        await db.metrics.add({ metric_type: 'blood_pressure', payload, synced: 0, recorded_at: new Date().toISOString() });
+        setMsg('Device offline. Reading safely queued offline.');
+      }
+
       e.currentTarget.reset();
       await refreshReport();
       router.refresh(); // Invalidate Next.js client router cache
@@ -490,10 +589,10 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-slate-700 bg-white dark:bg-slate-800">
-                      {readings.length === 0 ? (
+                      {displayReadings.length === 0 ? (
                         <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500 dark:text-slate-400">No readings found for these filters.</td></tr>
                       ) : (
-                        readings.map((r) => (
+                        displayReadings.map((r: any) => (
                           <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                             <td className="px-4 py-3 text-gray-800 dark:text-slate-200 whitespace-nowrap">{new Date(r.recorded_at).toLocaleString(undefined, {dateStyle: 'short', timeStyle: 'short'})}</td>
                             <td className="px-4 py-3 font-bold text-blue-600 dark:text-blue-400">{r.glucose_level} <span className="text-xs font-normal text-gray-500">mg/dL</span></td>
@@ -599,10 +698,10 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200 dark:divide-slate-700 bg-white dark:bg-slate-800">
-                      {bpReadings.length === 0 ? (
+                      {displayBpReadings.length === 0 ? (
                         <tr><td colSpan={4} className="px-4 py-8 text-center text-gray-500 dark:text-slate-400">No readings found for these filters.</td></tr>
                       ) : (
-                        bpReadings.map((r) => {
+                        displayBpReadings.map((r) => {
                           const isHigh = r.systolic >= 130 || r.diastolic >= 80;
                           return (
                             <tr key={r.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">

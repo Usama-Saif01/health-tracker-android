@@ -13,22 +13,71 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!navigator.onLine) {
+      setErrorMsg('You are currently offline. Please connect to the internet to sign in.');
+      return;
+    }
+
     setIsLoading(true);
     setErrorMsg('');
-    const loginEmail = email.includes('@') ? email : `${email}@demo.com`;
-    const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
-    if (error) setErrorMsg(error.message);
-    else router.push('/');
+    try {
+      const loginEmail = email.includes('@') ? email : `${email}@demo.com`;
+      const { error } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
+      if (error) {
+        if (error.message === 'Failed to fetch') {
+          setErrorMsg('Network error. Please check your internet connection.');
+        } else {
+          setErrorMsg(error.message);
+        }
+      } else {
+        router.push('/');
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message === 'Failed to fetch' ? 'Network error. Please check your internet connection.' : err.message);
+    }
     setIsLoading(false);
   };
 
   const handleSignUp = async () => {
+    if (!navigator.onLine) {
+      setErrorMsg('You are currently offline. Please connect to the internet to sign up.');
+      return;
+    }
     setIsLoading(true);
     setErrorMsg('');
-    const loginEmail = email.includes('@') ? email : `${email}@demo.com`;
-    const { error } = await supabase.auth.signUp({ email: loginEmail, password });
-    if (error) setErrorMsg(error.message);
-    else setErrorMsg('Check your email for a confirmation link.');
+    try {
+      const loginEmail = email.includes('@') ? email : `${email}@demo.com`;
+      const { error } = await supabase.auth.signUp({ email: loginEmail, password });
+      if (error) setErrorMsg(error.message === 'Failed to fetch' ? 'Network error.' : error.message);
+      else setErrorMsg('Check your email for a confirmation link.');
+    } catch (err: any) {
+      setErrorMsg('Network error. Please check your internet connection.');
+    }
+    setIsLoading(false);
+  };
+
+  const handleResetPassword = async () => {
+    if (!navigator.onLine) {
+      setErrorMsg('You are currently offline. Please connect to the internet to reset your password.');
+      return;
+    }
+    if (!email) {
+      setErrorMsg('Please enter your email/username first.');
+      return;
+    }
+    setIsLoading(true);
+    setErrorMsg('');
+    try {
+      const loginEmail = email.includes('@') ? email : `${email}@demo.com`;
+      const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) setErrorMsg(error.message === 'Failed to fetch' ? 'Network error.' : error.message);
+      else setErrorMsg('Password reset link sent to your email.');
+    } catch (err: any) {
+      setErrorMsg('Network error. Please check your internet connection.');
+    }
     setIsLoading(false);
   };
 
@@ -47,10 +96,10 @@ export default function LoginPage() {
               type="text"
               className="w-full border border-gray-300 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 p-2 rounded focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
               value={email} onChange={(e) => setEmail(e.target.value)}
-              placeholder="user1 or you@example.com" required
+              placeholder="you@example.com" required
             />
           </div>
-          <div className="mb-4">
+          <div className="mb-2">
             <label className="text-sm font-medium block mb-1 text-gray-600 dark:text-slate-400" htmlFor="password">Password</label>
             <input
               type="password"
@@ -58,6 +107,17 @@ export default function LoginPage() {
               value={password} onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••" required
             />
+          </div>
+          
+          <div className="flex justify-end mb-4">
+            <button 
+              type="button" 
+              onClick={handleResetPassword}
+              disabled={isLoading}
+              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
+            >
+              Forgot Password?
+            </button>
           </div>
           
           {errorMsg && (

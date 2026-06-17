@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "./providers";
+import OnboardingGuard from "../components/OnboardingGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,7 +41,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-gray-50 dark:bg-slate-900 transition-colors duration-200">
         <Providers>
           <div className="flex-1">
-            {children}
+            <OnboardingGuard>
+              {children}
+            </OnboardingGuard>
           </div>
           <footer className="py-6 text-center text-sm text-gray-500 dark:text-slate-400 border-t border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 mt-auto transition-colors">
             <p>

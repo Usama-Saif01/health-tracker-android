@@ -5,15 +5,20 @@ import { Redis } from '@upstash/redis';
 // Connect to the Upstash database using the environment variables
 const redis = Redis.fromEnv();
 
-// Configure the Sliding Window: Allow 10 requests every 60 seconds per IP
+// Configure the Sliding Window: Allow 100 requests every 60 seconds per IP
 const ratelimit = new Ratelimit({
   redis: redis,
-  limiter: Ratelimit.slidingWindow(10, '60 s'),
+  limiter: Ratelimit.slidingWindow(100, '60 s'),
 });
 
 export async function proxy(request: NextRequest) {
   // Extract the incoming IP address from headers (Vercel provides this)
   const ip = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+
+  // Bypass rate limit in local development to avoid blocking Next.js internal fetches
+  if (process.env.NODE_ENV === 'development') {
+    return NextResponse.next();
+  }
 
   // Check the rate limit
   const { success, limit, remaining, reset } = await ratelimit.limit(ip);
